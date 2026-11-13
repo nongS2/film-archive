@@ -146,11 +146,31 @@ if (filmRoot) {
         </dl>
 
         ${section("첫인상", firstLook)}
-        ${section("핵심 장면", scene)}
-        ${section("영화적 선택", choices)}
-        ${section("상징", symbols)}
-        ${section("종합 해석", f.interpretation ? `<p class="verdict">${esc(f.interpretation)}</p>` : "")}
-        ${section("나에게 남은 것", prose(f.takeaway))}
+
+        <!-- 여기부터 스포일러: 처음엔 흐리게 가려져 있음 -->
+        <div class="gate">
+          <p>여기부터 결말을 포함한 내용이 있어요.</p>
+          <button type="button" class="gate-btn" aria-controls="spoiler" aria-expanded="false">스포일러 보기</button>
+        </div>
+
+        <div class="spoiler is-hidden" id="spoiler" inert>
+          ${section("핵심 장면", scene)}
+          ${section("영화적 선택", choices)}
+          ${section("상징", symbols)}
+          ${section("종합 해석", f.interpretation ? `<p class="verdict">${esc(f.interpretation)}</p>` : "")}
+          ${section("나에게 남은 것", prose(f.takeaway))}
+        </div>
       </article>`;
+
+    // 스포일러 버튼: 누르면 보이고, 다시 누르면 다시 가려짐
+    const btn = filmRoot.querySelector(".gate-btn");
+    const spoiler = document.getElementById("spoiler");
+
+    btn.addEventListener("click", () => {
+      const hidden = spoiler.classList.toggle("is-hidden");
+      spoiler.inert = hidden;                        // 가려져 있을 땐 클릭·선택·읽기 막기
+      btn.textContent = hidden ? "스포일러 보기" : "다시 가리기";
+      btn.setAttribute("aria-expanded", String(!hidden));
+    });
   }
 }

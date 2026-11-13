@@ -219,6 +219,37 @@ a.card:focus-visible {
   white-space: pre-line;
 }
 
+/* 스포일러 가림 */
+.gate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 72px;
+  padding: 16px 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-size: 14px;
+}
+.gate-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.gate-btn:hover { background: var(--ink); color: var(--paper); }
+
+.spoiler { transition: filter .4s ease, opacity .4s ease; }
+.spoiler.is-hidden {
+  filter: blur(9px);
+  opacity: .55;
+  user-select: none;
+}
+
 .missing { padding: 80px 0; grid-column: 1 / -1; }
 .missing a { text-decoration: underline; text-underline-offset: 3px; }
 
