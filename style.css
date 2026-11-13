@@ -250,6 +250,36 @@ a.card:focus-visible {
   user-select: none;
 }
 
+/* 용어 설명 */
+.term {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  cursor: help;
+}
+.term:hover { border-bottom-style: solid; }
+
+.tip {
+  position: fixed;
+  z-index: 10;
+  max-width: 260px;
+  padding: 10px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.55;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.tip.on { opacity: 1; }
+.tip b { display: block; margin-bottom: 2px; font-weight: 600; }
+
 .missing { padding: 80px 0; grid-column: 1 / -1; }
 .missing a { text-decoration: underline; text-underline-offset: 3px; }
 

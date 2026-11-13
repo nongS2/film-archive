@@ -98,9 +98,27 @@ if (filmRoot) {
     document.title = `${f.title} | 영화 아카이브`;
     document.body.style.setProperty("--film", f.color);
 
+    // ── 용어 설명: 글 속 용어를 찾아서, 처음 나올 때 한 번만 버튼으로 바꿈 ──
+    const glossary = (typeof GLOSSARY !== "undefined") ? GLOSSARY : {};
+    const termList = Object.keys(glossary).sort((a, b) => b.length - a.length); // 긴 용어 먼저 (롱 숏 > 숏)
+    const termRegex = termList.length
+      ? new RegExp(termList.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g")
+      : null;
+    const used = new Set();
+
+    const withTerms = text => {
+      const safe = esc(text);
+      if (!termRegex) return safe;
+      return safe.replace(termRegex, term => {
+        if (used.has(term)) return term;
+        used.add(term);
+        return `<button type="button" class="term" data-term="${term}">${term}</button>`;
+      });
+    };
+
     // 내용이 있을 때만 그 칸을 만듦
     const section = (title, html) => html ? `<section><h2>${title}</h2>${html}</section>` : "";
-    const prose = text => text ? `<p class="prose">${esc(text)}</p>` : "";
+    const prose = text => text ? `<p class="prose">${withTerms(text)}</p>` : "";
 
     const words = (f.words || []).filter(Boolean);
     const firstLook =
@@ -115,9 +133,9 @@ if (filmRoot) {
       <div class="choice">
         <h3><span class="area">${esc(c.area)}</span>${esc(c.element)}</h3>
         <dl>
-          <dt>표현 <i>How</i></dt><dd>${esc(c.how)}</dd>
-          <dt>효과 <i>Effect</i></dt><dd>${esc(c.effect)}</dd>
-          <dt>의미 <i>Meaning</i></dt><dd>${esc(c.meaning)}</dd>
+          <dt>표현 <i>How</i></dt><dd>${withTerms(c.how)}</dd>
+          <dt>효과 <i>Effect</i></dt><dd>${withTerms(c.effect)}</dd>
+          <dt>의미 <i>Meaning</i></dt><dd>${withTerms(c.meaning)}</dd>
         </dl>
       </div>`).join("");
 
@@ -157,7 +175,7 @@ if (filmRoot) {
           ${section("핵심 장면", scene)}
           ${section("영화적 선택", choices)}
           ${section("상징", symbols)}
-          ${section("종합 해석", f.interpretation ? `<p class="verdict">${esc(f.interpretation)}</p>` : "")}
+          ${section("종합 해석", f.interpretation ? `<p class="verdict">${withTerms(f.interpretation)}</p>` : "")}
           ${section("나에게 남은 것", prose(f.takeaway))}
         </div>
       </article>`;
@@ -172,5 +190,41 @@ if (filmRoot) {
       btn.textContent = hidden ? "스포일러 보기" : "다시 가리기";
       btn.setAttribute("aria-expanded", String(!hidden));
     });
+
+    // 용어 설명 말풍선: 마우스를 올리거나, 누르거나, Tab으로 가면 뜸
+    const tip = document.createElement("div");
+    tip.className = "tip";
+    tip.id = "tip";
+    tip.setAttribute("role", "tooltip");
+    document.body.appendChild(tip);
+
+    const showTip = el => {
+      const term = el.dataset.term;
+      tip.innerHTML = `<b>${esc(term)}</b>${esc(glossary[term])}`;
+      tip.classList.add("on");
+      el.setAttribute("aria-describedby", "tip");
+
+      // 화면 밖으로 안 나가게 위치 계산 (기본은 단어 위, 공간 없으면 아래)
+      const r = el.getBoundingClientRect();
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      const left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+      const top = r.top - h - 8 >= 8 ? r.top - h - 8 : r.bottom + 8;
+      tip.style.left = `${left}px`;
+      tip.style.top = `${top}px`;
+    };
+    const hideTip = () => {
+      tip.classList.remove("on");
+      filmRoot.querySelectorAll(".term[aria-describedby]").forEach(t => t.removeAttribute("aria-describedby"));
+    };
+
+    filmRoot.querySelectorAll(".term").forEach(el => {
+      el.addEventListener("mouseenter", () => showTip(el));
+      el.addEventListener("mouseleave", hideTip);
+      el.addEventListener("focus", () => showTip(el));
+      el.addEventListener("blur", hideTip);
+      el.addEventListener("click", () => showTip(el)); // 휴대폰은 누르면 뜸
+    });
+    window.addEventListener("scroll", hideTip, { passive: true });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") hideTip(); });
   }
 }
